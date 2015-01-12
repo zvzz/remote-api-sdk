@@ -1,2 +1,2 @@
-# remote-api-sdk
-12Go SDK for transport companies
+# SDK for transport companies
+Several PHP scripts for easy integration transport conpanies to https://12go.asia

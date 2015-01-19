@@ -17,12 +17,12 @@ define(API_KEY, 'de0bgrez12!@ssde');
 
 $API_METHOD_MAP = array(
 	'getStationsList'   => array(),
-	'getRouteList'      => array(API_PARAM_FROM_ID),
-	'getSchedule'       => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE),
+	'getRoutesList'     => array(),
+	'getRouteSchedule'  => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE),
 	'getSeatsMap'       => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE, API_PARAM_TIME, API_PARAM_BUS_TYPE),
-	'reservSeats'       => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE, API_PARAM_TIME, API_PARAM_BUS_TYPE),
+	'reserveSeats'      => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE, API_PARAM_TIME, API_PARAM_BUS_TYPE, API_PARAM_EMAIL, API_PARAM_PHONE),
 	'confirmBooking'    => array(API_PARAM_BOOKING_ID),
-	'cancelBooking'		=> array(API_PARAM_BOOKING_ID),
+	'cancelBooking'     => array(API_PARAM_BOOKING_ID),
 	'getBookingDetail'  => array(API_PARAM_BOOKING_ID),
 );
 

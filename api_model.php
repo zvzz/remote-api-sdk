@@ -1,80 +1,71 @@
 <?php
 
-
-function doSqlQuery($sql) 
-{
-	return array();
-}
-
 /**
- * Return all operator stations
- * bus terminal, bus stop, pickup or dropoff points
+ * Returns all operator stations
+ * terminals, stops, pickup or dropoff points
  * 
  * @return Array of ['id' => station_id, 'name' => statation_name, 'adress' =>, 'description' =>,....city, province, lat,lng]
  * id, name - required fields, other is optional
  */
 function getStationsList()
 {
-	$result = [];
-	foreach (doSqlQuery("SELECT station_id, station_name FROM station") as $row) {
-		$result[] = array(
-			'id'   => $row['station_id'],
-			'name' => $row['station_name'],
-			//optional
-			'adress'   => $row['adress'],
-			'citu'     => $row['city'],
-			'province' => $row['province'],
-			'lat' => $row['lat'],
-			'lng' => $row['lng'],
-		);
-	}
-	return $result;
+	return array(
+		array('id' => 9,  'name' => 'Morchit',    'description' => 'Bangkok Northeastern Bus Terminal'),
+		array('id' => 13, 'name' => 'Chiang Mai', 'description' => 'Bus Station Wat Ket Chiang Mai'),
+		array('id' => 41, 'name' => 'Lampang',    'description' => 'Jant Surin Bus Terminal'),
+		array('id' => 72, 'name' => 'Chiang Rai', 'description' => 'Chiang Rai bus station'),
+	);
 }
 
 /**
- * Return all available(active, operable) routes from $stationId
+ * Return all available(active, operable) routes
  * 
- * @param int $stationId
- * 
- * @return Array [id, id, id, id]
+ * @return Array see doc for detailed description of array structure
  */
-function getRouteList($stationId)
+function getRoutesList()
 {
-	$result = [];
-	foreach (doSqlQuery("SELECT to_station_id FROM route WHERE from_station_id = {$stationId}") as $row) {
-		$result[] = $row['to_station_id'];
-	}
-	return $result;
+	return array(
+		// Bangkok(Mo Chit) -> Lampang -> Chiang Mai
+		array('class' => 'VIP', 'departures' => array('06:00', '11:00'),
+			'route' => array(0 => 9, 600 => 41, 780 => 13), 
+			'price' => array('9-41' => '620', '9-13' => '650'),
+		),
+		// Chiang Mai -> Lampang  -> Bangkok(Mo Chit)
+		array('class' => 'VIP', 'departures' => array('08:00', '15:00'),
+			'route' => array(0 => 13, 180 => 41, 780 => 9),
+			'price' => array('13-9' => '650.20'),
+		),
+		// Chiang Rai -> Chiang Mai
+		array('class' => 'Executive', 'departures' => array('08:00', '10:00', '16:00', '18:00'), 
+			'route' => array(0 => 72, 200 => 13), 
+			'price' => array('72-13' => '220')
+		),
+		// Chiang Mai -> Chiang Rai
+		array('class' => 'Executive', 'departures' => array('09:00', '11:00', '15:00', '17:00'), 
+			'route' => array(0 => 13, 200 => 72),
+			'price' => array('13-72' => '220'),
+		),
+	);
 }
 
 /**
  * Return all departures for $date
+ * with seats
  * [time, class, price]
  * 
  * @param int    $fromId 
  * @param int    $toId
  * @param string $date Y-m-d
  * 
- * @return Array [time, class, price, (optional: distance, duration, stops[id,id,id])]
+ * @return Array [[departure time, class, price, seats avaible],..]
  */
-function getSchedule($fromId, $toId, $date)
+function getRouteSchedule($fromId, $toId, $date)
 {
-	$result = [];
-	$query = "SELECT departure_time, bus_type, price FROM departure WHERE from_station_id = {$fromId} AND to_station_id={$toid} AND departure_date = {$date}";
-	foreach (doSqlQuery($query) as $row) {
-		$result[] = array(
-			'time'  => $row['departure_time'], 
-			'class' => $row['bus_type'], 
-			'price' => $row['price'],
-			//.. optional ...
-			'seats_total'     => $row['seats_total'],
-			'seats_available' => $row['seats_available'],
-			'distance' => $row['distance'],
-			'duration' => $row['duration'],
-			'stops'    => array(/* staions id */]),
-		);
-	}
-	return $result;
+	return array(
+		// Bankkok -> Chiang Mai
+		array('06:00', 'VIP', 650, 28),
+		array('11:00', 'VIP', 650, 13),
+	);
 }
 
 
@@ -91,23 +82,30 @@ function getSchedule($fromId, $toId, $date)
  */
 function getSeatsMap($fromId, $toId, $date, $time, $class)
 {
-	$result = []; // init $result with all seats first
-	$q = "SELECT * FROM booking LEFT JOIN passenger ON (passenger.booking_id = booking.booking_id)
-	WHERE 
-		bookig.from_station_id = {$fromId} 
-	AND 
-		bookig.to_station_id = {$toid}
-	AND 
-		booking.departure_date = '{$date}'
-	AND 
-		booking.departure_time = '{$time}'
-	AND 
-		booking.bus_type = '{$class}'";
-
-	foreach (doSqlQuery($q) as $row) {
-		$result[$row['seat']] = 'BOOKED';
-	}
-	return $result;
+	// Bankkok -> Chiang Mai at '11:00', VIP-class
+	return array(
+		//first floor =>
+		1 => array(
+			'rows'   => 10,
+			'layout' => '00 00',
+			'custom' => array(
+				//row => map
+				5 => 'xx00',
+				6 => 'xx00',
+			),
+			'booked' => array(
+				// seat_code => passenger type
+				'1A' => 'MALE',
+				'2A' => 'FEMALE',
+				'3A' => 'SOLDER',
+				'4A' => 'MONK',
+				'1B' => 'MALE',
+				'2B' => 'MALE',
+				'3B' => 'MONK',
+				'4B' => 'MONK',
+			),
+		),
+	);
 }
 
 /**
@@ -117,32 +115,19 @@ function getSeatsMap($fromId, $toId, $date, $time, $class)
  * @param int    $toId 
  * @param string $date departure date as Y-m-d
  * @param string $time departure time as h:i
- * @param mixed  $class bus type identifier 
- * @param array  $passengers [[first_name, second_name],...]
+ * @param mixed  $class bus type identifier
+ * @param string $email 
+ * @param string $phone for contact
+ * @param array  $passengers [[first_name, second_name, seat_id],...]
  * 
  * @return Array with unique booking ID, or null if something goes wrong
  */
-function reservSeats($fromId, $toId, $date, $time, $class, Array $passengers)
+function reservSeats($fromId, $toId, $date, $time, $class, $email, $phone, Array $passengers)
 {
-	$bookingId = doSqlQuery("INSERT INTO booking SET 
-		from_station_id = {$fromId}, 
-		to_station_id   = {$toId}, 
-		departure_time  = '{$time}', 
-		departure_date  = '{$date}', 
-		bus_type  = '{$class}'"
-	);
-	if ($bookingId) {
-		doSqlQuery("INSERT INTO passenger (booking_id, first_name, second_name) VALUES({$bookingId}, '{$passengers[0]['first_name']}', '{$passengers[0]['last_name']}')");
-	} else {
-		return array(
-			'booking_id' => $bookingId,
-			'seccessful' => 1,
-		);
-	}
 	return array(
-		'booking_id' => null,
-		'seccessful' => 0,
-		'message'	 => '', // reason that booking not created
+		'booking_id' => 'booking', // or null if booking unsuccessful
+		'successful' => 1,  // 1|0 successful or not
+		'message'	 => '', // reason that booking not created or empty string
 	);
 }
 
@@ -154,9 +139,8 @@ function reservSeats($fromId, $toId, $date, $time, $class, Array $passengers)
  */
 function confirmBooking($bookingId)
 {
-	$result = doSqlQuery("UPDATE booking SET status='CONFIRMED' WHERE booking_id = '{$bookingId}'");
 	return array(
-		'suscessful' => $result ? 1 : 0,
+		'suscessful' => 1,  // 1|0 successful or not
 		'message'    => '', // error message if something goes wrong
 	);
 }
@@ -169,9 +153,8 @@ function confirmBooking($bookingId)
  */
 function cancelBooking($bookingId) 
 {
-	$result = doSqlQuery("UPDATE booking SET status='CANCELED' WHERE booking_id = '{$bookingId}'");	
 	return array(
-		'suscessful' => $result ? 1 : 0,
+		'suscessful' => 1,  // 1|0 successful or not
 		'message'    => '', // error message if something goes wrong
 	);
 }
@@ -184,34 +167,29 @@ function cancelBooking($bookingId)
  */
 function getBookingDetail($bookingId)
 {
-	$res = doSqlQuery("SELECT * FROM booking WHERE booking_id = {$bookingId}");
-	$passengers = doSqlQuery("SELECT * FROM passenger WHERE booking_id = {$bookingId}");
-	// or use join
-	if (!$res or !$pas) {
-		// booking not found
-		return null;
-	}
-	
-	$result = array(
-		'id'    => $res['booking_id'],
-		'satus' => $res['status_id'],
-		'from'  => $res['from_station_id'],
-		'to'    => $res['to_station_id'],
-		'date'  => $res['departure_date'], // Y-m-d
-		'time'  => $res['departure_time'], // h:i
-		'email' => $res['email'],
-		'phone' => $res['phone'],
-		'passengers' => array(),
+	// Bangkok -> Chian Mai at 11:00 2015-02-10 for 2 person
+	return array(
+		'id'    => 'booking_id',
+		'satus' => 'status_id', // RESERVED | PAID | CONFIRMED | CANCELLED
+		'from'  => 9,
+		'to'    => 13,
+		'class' => 'VIP',
+		'date'  => '2015-02-10', // Y-m-d
+		'time'  => '11:00', // h:i
+		'email' => 'olaf.peter@gmail.com',
+		'phone' => '+660925453322', 
+		'passengers' => array(
+			array(
+				'first_name'  => 'Olaf',
+				'second_name' => 'Peterson',
+				'seat' => '1A',
+			),
+			array(
+				'first_name'  => 'Hanna',
+				'second_name' => 'Peterson',
+				'seat' => '1B',
+			),
+		),
 	);
 
-	foreach ($passengers as $pass) {
-		$result['passengers'][] = 	array(
-			'first_name'  => $pas[0]['first_name'], 
-			'second_name' => $pas[0]['second_name'], 
-			'seat'        => $pas[0]['seat'],
-			'personal_id' => $pas[0]['id'] // optional
-		);
-	}
-
-	return $result;
 }

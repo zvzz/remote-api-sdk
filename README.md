@@ -74,7 +74,7 @@ __getRoutesList__ возвращает список маршрутов с кот
 ```
 Пример: operator.site/api?method=getRoutesList&code=1234&signature=sha1
 
-__getRouteSchedule__ - возвращает список отправлений между двумя станциями на определенную дату. Входящие параметры:
+__getSchedule__ - возвращает список отправлений между двумя станциями на определенную дату. Входящие параметры:
 
 | Параметр      | Значение             |
 | ------------- |---------------------|
@@ -142,7 +142,7 @@ __reserveSeats__ бронирование мест в конкретном ре�
 [
 	{
 		"first_name"  : "First",
-		"second_name" : "Second",
+		"last_name" : "Second",
 		/* идентификатор места, полученный методом getSeatsMap */
 		"seat" : "seat_id",
 	},
@@ -160,7 +160,7 @@ __reserveSeats__ бронирование мест в конкретном ре�
     "message" : "error_message",
 }
 ```
-Пример вызова: operator.site/api?method=getRouteSchedule&from_id=1&to_id=2&time=10:00&date=2015-10-10&code=1234&email=book@mail.com&phone=123456789&signature=sha1&passengers=[{"first_name":"Olaf","second_name":"Peterson","seat":"5A"},{"first_name":"Hanna","second_name":"Peterson","seat":"1B"}]
+Пример вызова: operator.site/api?method=getRouteSchedule&from_id=1&to_id=2&time=10:00&date=2015-10-10&code=1234&email=book@mail.com&phone=123456789&signature=sha1&passengers=[{"first_name":"Olaf","last_name":"Peterson","seat":"5A"},{"first_name":"Hanna","last_name":"Peterson","seat":"1B"}]
 
 __confirmBooking__ подтверждение ранее совершенной брони, после оплаты. На вход передается идентификатор брони.
 
@@ -208,7 +208,7 @@ __getBookingDetail__ возвращает детали бронирования.
   	"passengers" : [
     	{
         	"first_name"  : "First", 
-        	"second_name" : "Second", 
+        	"last_name"   : "Last", 
             "seat"        : "seat_id",
         },
 		// other passengers...

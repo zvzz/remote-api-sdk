@@ -93,17 +93,7 @@ function getSeatsMap($fromId, $toId, $date, $time, $class)
 				5 => 'xx00',
 				6 => 'xx00',
 			),
-			'booked' => array(
-				// seat_code => passenger type
-				'1A' => 'MALE',
-				'2A' => 'FEMALE',
-				'3A' => 'SOLDER',
-				'4A' => 'MONK',
-				'1B' => 'MALE',
-				'2B' => 'MALE',
-				'3B' => 'MONK',
-				'4B' => 'MONK',
-			),
+			'booked' => array('1A', '2A', '3A', '4A', '1B'),
 		),
 	);
 }

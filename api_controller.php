@@ -6,25 +6,37 @@ define(API_PARAM_FROM_ID,    'from_id');
 define(API_PARAM_TO_ID,      'to_id');
 define(API_PARAM_DATE,       'date');
 define(API_PARAM_TIME,       'time');
-define(API_PARAM_BUS_TYPE,   'bus_type');
+define(API_PARAM_BUS_TYPE,   'class');
 define(API_PARAM_BOOKING_ID, 'booking_id');
 define(API_PARAM_PHONE,      'phone');
 define(API_PARAM_EMAIL,      'email');
 define(API_PARAM_STATION_ID, 'station_id');
 define(API_PARAM_PASSENGERS, 'passengers');
 
-define(API_KEY, 'de0bgrez12!@ssde');
+/* you must define key for 12go.asia */
+define(API_KEY, 'DEFINE_KEY_HERE');
 
 $API_METHOD_MAP = array(
 	'getStationsList'   => array(),
 	'getRoutesList'     => array(),
-	'getRouteSchedule'  => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE),
+	'getSchedule'       => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE),
 	'getSeatsMap'       => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE, API_PARAM_TIME, API_PARAM_BUS_TYPE),
 	'reserveSeats'      => array(API_PARAM_FROM_ID, API_PARAM_TO_ID, API_PARAM_DATE, API_PARAM_TIME, API_PARAM_BUS_TYPE, API_PARAM_EMAIL, API_PARAM_PHONE),
 	'confirmBooking'    => array(API_PARAM_BOOKING_ID),
 	'cancelBooking'     => array(API_PARAM_BOOKING_ID),
 	'getBookingDetail'  => array(API_PARAM_BOOKING_ID),
 );
+
+/**
+ * Handle HTTP-reqest to API
+ * 
+ * @param type Array $req $_GET
+ * @return string JSON-encoded response
+ */
+function responseApi(Array $req)
+{
+	return json_encode(callApiRequest($req));
+}
 
 
 /**
@@ -65,13 +77,13 @@ function callApiRequest(Array $req)
 		$methodParams[$field] = $req[$field];
 	}
 
-	if ($method === 'reservSeats') {
+	if ($method === 'reserveSeats') {
 		if (!array_key_exists(API_PARAM_PASSENGERS, $req)) {
 			return array('error' => "Passengers information not found");
 		}
 		$req[API_PARAM_PASSENGERS] = json_decode($req[API_PARAM_PASSENGERS], true);
-		if (!is_array($req[API_PARAM_PASSENGERS])) {
-			return array('error' => "Passengers information invalid");
+		if (!validatePassengers($req[API_PARAM_PASSENGERS])) {
+			return array('error' => "Passengers information invalid");	
 		}
 		$methodParams[API_PARAM_PASSENGERS] = $req[API_PARAM_PASSENGERS];
 	}
@@ -98,6 +110,30 @@ function checkSignature($signature, $method, $key, $code)
 	return $signature === sha1($method . $key . $code);
 }
 
+
+/**
+ * Validate passengers information structure
+ * 
+ * @param Array $pas 
+ * @return boolean
+ */
+function validatePassengers($pas)
+{
+	if (!is_array($pas) or empty($pas)) {
+		return false;
+	}
+	foreach ($pas as $p) {
+		if (!is_array($p) or empty($p)) {
+			return false;
+		}
+		foreach (array('first_name', 'last_name', 'seat') as $field) {
+			if (!isset($p[$field])) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 /**
  * Validate api-request param

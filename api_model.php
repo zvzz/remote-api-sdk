@@ -2,7 +2,7 @@
 
 /**
  * Returns all operator stations
- * terminals, stops, pickup or dropoff points
+ * terminals, stops, pickup and dropoff points
  * 
  * @return Array of ['id' => station_id, 'name' => statation_name, 'adress' =>, 'description' =>,....city, province, lat,lng]
  * id, name - required fields, other is optional
@@ -59,12 +59,12 @@ function getRoutesList()
  * 
  * @return Array [[departure time, class, price, seats avaible],..]
  */
-function getRouteSchedule($fromId, $toId, $date)
+function getSchedule($fromId, $toId, $date)
 {
 	return array(
 		// Bankkok -> Chiang Mai
-		array('06:00', 'VIP', 650, 28),
-		array('11:00', 'VIP', 650, 13),
+		array('time' => '06:00','class' => 'VIP', 'price' => 650, 'seats' => 28),
+		array('time' => '11:00','class' => 'VIP', 'price' => 650, 'seats' => 13),
 	);
 }
 
@@ -118,14 +118,14 @@ function getSeatsMap($fromId, $toId, $date, $time, $class)
  * @param mixed  $class bus type identifier
  * @param string $email 
  * @param string $phone for contact
- * @param array  $passengers [[first_name, second_name, seat_id],...]
+ * @param array  $passengers [[first_name, last_name, seat],...]
  * 
  * @return Array with unique booking ID, or null if something goes wrong
  */
-function reservSeats($fromId, $toId, $date, $time, $class, $email, $phone, Array $passengers)
+function reserveSeats($fromId, $toId, $date, $time, $class, $email, $phone, Array $passengers)
 {
 	return array(
-		'booking_id' => 'booking', // or null if booking unsuccessful
+		'booking_id' => 'h247b45c20', // or null if booking unsuccessful
 		'successful' => 1,  // 1|0 successful or not
 		'message'	 => '', // reason that booking not created or empty string
 	);
@@ -140,7 +140,7 @@ function reservSeats($fromId, $toId, $date, $time, $class, $email, $phone, Array
 function confirmBooking($bookingId)
 {
 	return array(
-		'suscessful' => 1,  // 1|0 successful or not
+		'successful' => 1,  // 1|0 successful or not
 		'message'    => '', // error message if something goes wrong
 	);
 }
@@ -154,7 +154,7 @@ function confirmBooking($bookingId)
 function cancelBooking($bookingId) 
 {
 	return array(
-		'suscessful' => 1,  // 1|0 successful or not
+		'successful' => 1,  // 1|0 successful or not
 		'message'    => '', // error message if something goes wrong
 	);
 }
@@ -180,13 +180,13 @@ function getBookingDetail($bookingId)
 		'phone' => '+660925453322', 
 		'passengers' => array(
 			array(
-				'first_name'  => 'Olaf',
-				'second_name' => 'Peterson',
+				'first_name' => 'Olaf',
+				'last_name'  => 'Peterson',
 				'seat' => '1A',
 			),
 			array(
-				'first_name'  => 'Hanna',
-				'second_name' => 'Peterson',
+				'first_name' => 'Hanna',
+				'last_name'  => 'Peterson',
 				'seat' => '1B',
 			),
 		),

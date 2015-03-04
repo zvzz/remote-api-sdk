@@ -1,87 +1,92 @@
-# SDK для транспортных компаний
-Два php-файла для простой интеграции транспортных компаний с [12go.asia](https://12go.asia)
+# Transport Company SDK for 12Go
+There are 2 simple PHP files for easy integration of your company into [12go.asia](https://12go.asia) repository
 
- * api_contoller.php - Точка входа для обработки запроса к API.
- * api_model.php - Реализация функций доступа к данным.
+ * api_contoller.php - API endpoint.
+ * api_model.php - data access function you will need to extend.
 
-####Интеграция
-Для тогда что бы интегрировать вашу систему с [12go.asia](https://12go.asia) нужно реализовать на своей стороне вызовы API, сгенерировать свой ключ API и сообщить его. Вы можете просто подключить два наших файла к своему php-коду в том месте где вы предполагаете обрабатывать запросы к API. Файл **api_controller.php** содержит код обработки и проверки http-запросов, вызов соответствующих функций доступа к данным. Эти функции находятся в файле **api_model.php** в нем вам достаточно добавить свой код доступа к данным в соответствующих функциях. 
+####Integrtaion
+To integrate your inventory system into [12go.asia](https://12go.asia) you will have to extend API calls on your side, generate API key and send it to 12Go. You may simply place our 2 files to where you planned to have an API endpoint. **api_controller.php** file checks HTTP(s) requests, and calls certain data access functions. These functions are in the **api_model.php** file and all you havce to do is to add specific code to access your database. 
 
-####Общие положения
-Вызов API оператора проиходит по протоколу HTTP(S) с использованием метода GET.
-Каждый запрос к API должен содержать три обязательных параметра:
+For security, we have no access to this code.
 
-  * method - метод API который нужно вызвать
-  * signature -  sha1 хэш для подписи запроса
-  * code - уникальная последовательность чисел для каждого запроса
+####General
+API calls are HTTP(s) GET calls
+Each call must contain 3 mandatory parameters
 
-Если вы будете использовать отличный от предложенного метод генерации подписи для запроса, сообщите об этом нам.
+  * method - API method to call
+  * signature -  SHA1 hash code to sign the request
+  * code - unique nueric sequence for each request
 
-* **Идентификатор станции** - произвольная срока однозначно пределяющая станцию в системе оператора.
-* **Идентификатор брони** - произвольная строка однозначно определяющая бронь в системе оператора.
-* **Тип автобуса(класс)** - название которое использует оператор для определенного типа автобуса и уровня сервиса
-* **Статус брони** - одно из значений вида: RESERVED(зарезервировано на время оплаты), CONFIRMED(бронь оплачена), CANCELLED(бронь отменена).
-* **Время** - строка в формате "h:i"
-* **Дата** - строка в формате "Y-m-d"
+If you plan on using a different security approach, just let us know.
 
-####Пример использования
-Используя методы getStationsList и getRoutesList мы импортируем маршруты оператора в 12go.asia. Это позволит показывать эти маршруты нашим клиентам.
-Метод getSchedule позволяет узнать наличие мест на конкретную дату и время. Поcле этого клиент может выбрать нужный рейс, зарезериваровать места на время оплаты(reserveSeats) и получить идентификатор брони. По этому идентификатору можно подтвердить бронь после оплаты(confirmBooking) или отменить(cancelBooking). Политику отмены бронирования и максимальное время резервации опредляет сам оператор.
+* **Station ID** - unique station identifier in your system.
+* **Booking ID** - unique booking identifier in your system.
+* **Class ID** - vehicle class to be used on a trip (VIP, VIP32, Express, etc)
+* **Booking Status** - RESERVED (reserved during the booking process), CONFIRMED (seat paid), CANCELLED (booking canceled).
+* **Time** - string as "h:i"
+* **String** - string as "Y-m-d"
 
-####Методы API
+####Usage example
+12Go will import your routes using **getStationsList** и **getRoutesList**. This allows 12Go go to make these available for the passengers in all devices/websites/apps connected to 12Go system.
+**getSchedule** method will allow 12Go to check availability for a given date and time.
+Passenger then will be able to choose the departure, reserve seats for the duration of booking process (**reserveSeats**), and get **Booking ID**.
+For that given **Booking ID** it will be possible to **confirmBooking** or **cancelBooking**. 
+Cancelation policy is then applied by the operator.
 
-__getStationsList__ - возращает список станций с которыми работает оператор. Входящих параметров нет. Ответ JSON-строка вида:
+####API Methods
+
+__getStationsList__ - returns station list. No input params. Response has to be a JSON:
 ```javascript
 [
 	[
-        /* обязательные поля */    
+        /* mandatory */    
     	"id"   : unq_station_id,
         "name" : station_name,
-        /* опциональные поля */
+        /* optional */
         "description" : description_for_station,
-        "alt_name"    : alternative_station_name,
-        "address"     : adress_of_station,
+        "alt_name"    : alternative_station_name /* local language */,
+        "address"     : station_address,
         "lat"         : station_latitude,
         "lng"         : station_longitude
     ],
-    /* остальные станции... */
+    /* other stations... */
 ]
 ```
-Пример: operator.site/api?method=getStationsList&code=1234&signature=sha1
+Example: operator.site/api?method=getStationsList&code=1234&signature=sha1
 
-__getRoutesList__ возвращает список маршрутов с которыми работает оператор. Входящих параметров нет. Ответ JSON-строка вида:
+__getRoutesList__ returns operator route list. No input params. Response has to be a JSON as is:
 ```javascript
 [
 	{
 		"class" : coach_type,
-		/* расписание отправлений с начальной станции формате h:i */
+		/* departure list with timing like h:i */
 		"departures" : [time1, time2, time3],
-		/* список станций на маршруте */
+		/* station list on the route, with duration in minutes between stations */
 		"route" : {
 			"0" : first_station_id,
-			"duration from first to second" : second_station_id,
-			/* транзитные станции... */
-			"duration from first to last"   : last_station_id
+			"duration from A to B" : next_station_id,
+			/* other stations... */
+			"duration from C to D"   : last_station_id
 		},
-		/* цены на участки маршрута */
+		/* prices for different route spans */
 		"price" : {
-			"first_station_id-second_station_id" : price
-			/* цены на другие участки маршрута */
+			"first_station_id-next_station_id" : price
+			/* other route spans */
 		}
 	},
-	/* другие маршруты */
+	/* other routes */
 ]
 ```
 Пример: operator.site/api?method=getRoutesList&code=1234&signature=sha1
 
-__getSchedule__ - возвращает список отправлений между двумя станциями на определенную дату. Входящие параметры:
+__getSchedule__ - returns departure list between two stations for a given date. Input params:
 
-| Параметр      | Значение            |
+| Parameter     | Value	              |
 | ------------- |---------------------|
 | from_id       | unique station id   |
 | to_id         | unique station id   |
 | date          | departure date Y-m-d|
-Ответ JSON-строка вида:
+Response JSON:
 ```javascript
 [
 	{
@@ -90,27 +95,27 @@ __getSchedule__ - возвращает список отправлений ме�
 		"price" : price,
 		"seats" : seats_count_available,
 	},
-	/* остальные отправления... */
+	/* other departures... */
 ]
 ```
-Пример: operator.site/api?method=getSchedule&from_id=1&to_id=2&date=2015-10-10&code=1234&signature=sha1
+Example: operator.site/api?method=getSchedule&from_id=1&to_id=2&date=2015-10-10&code=1234&signature=sha1
 
-__getSeatsMap__ - возращает схему сидений и список занятых мест на конкретном райсе. Входящие параметры:
+__getSeatsMap__ - returns seat layout and taken seats for a given departure. Input params:
 
-| Параметр      | Значение            |
+| Parameter     | Value               |
 | ------------- |---------------------|
 | from_id       | unique station id   |
 | to_id         | unique station id   |
 | date          | departure date Y-m-d|
 | time          | departure time h:i  |
 | class         | coach type          |
-Ответ JSON-строка вида:
+Response JSON:
 ```javascript
 {
 	"floor_id" : {
 		"rows"   : count_of_seat_rows,
 		"layout" : common_row_layout_pattern,
-		/* ряды с раскладкой отличной от основной */
+		/* custom seat rows */
 		"custom" : {
 			"row_num" : custom_layout_pattern,
 		},
@@ -118,13 +123,13 @@ __getSeatsMap__ - возращает схему сидений и список �
 	}
 }
 ```
-floor_id - номер этажа автобуса, layout_pattern - строка вида 'xx xx', в которой 'x' - ряд сидений в автобусе а пробельный символ - проход между креслами.
+floor_id - vehicle floor or compartment, layout_pattern - string like 'xx xx', where 'x' - is a seat and space is a walk through.
 
-Пример: operator.site/api?method=getSeatsMap&from_id=1&to_id=2&time=10:00&date=2015-10-10&class=vip&code=1234&signature=sha1
+Example: operator.site/api?method=getSeatsMap&from_id=1&to_id=2&time=10:00&date=2015-10-10&class=vip&code=1234&signature=sha1
 
-__reserveSeats__ бронирование мест в конкретном рейсе на время оплаты, возвращает индентификатор брони или сообщение об ошибке. Входящие параметры:
+__reserveSeats__ seat reservation for a given departure, for the duration of the booking process. Returns Booking ID or an error. Input parameters:
 
-| Параметр      | Значение             |
+| Parameter     | Value                |
 | ------------- |----------------------|
 | from_id       | unique station id    |
 | to_id         | unique station id    |
@@ -133,62 +138,63 @@ __reserveSeats__ бронирование мест в конкретном ре�
 | email         | contact email        |
 | phone         | contact phone        |
 | passengers    | JSON                 |
-Строка описывающая пассажиров это JSON вида:
+
+Passenger definition is a JSON:
 ```javascript
 [
 	{
 		"first_name"  : First,
 		"last_name"   : Second,
-		/* идентификатор места, полученный методом getSeatsMap */
+		/* seat ID via getSeatsMap */
 		"seat" : seat_id,
 	},
-	/* остальные пассажиры... */
+	/* other passengers... */
 ]
 ```
-Ответ JSON-строка вида:
+Response is JSON:
 ```javascript
 {
-	// Уникальный идентификатор брони
+	// Unique Booking ID
     "booking_id" : unique_booking_id,
-    // флаг 0 или 1, в зависимости от того удалось ли зарезервировать места
+    // flag 0 or 1, depending on the booking call result
     "successful" : 1,
-    // Сообщение об ошибке если бронь не создана
+    // Error message in case there was one
     "message" : error_message,
 }
 ```
-Пример вызова: operator.site/api?method=reserveSeats&from_id=1&to_id=2&time=10:00&date=2015-10-10&code=1234&email=book@mail.com&phone=123456789&signature=sha1&passengers=[{"first_name":"Olaf","last_name":"Peterson","seat":"5A"},{"first_name":"Hanna","last_name":"Peterson","seat":"1B"}]
+Example: operator.site/api?method=reserveSeats&from_id=1&to_id=2&time=10:00&date=2015-10-10&code=1234&email=book@mail.com&phone=123456789&signature=sha1&passengers=[{"first_name":"Olaf","last_name":"Peterson","seat":"5A"},{"first_name":"Hanna","last_name":"Peterson","seat":"1B"}]
 
-__confirmBooking__ подтверждение ранее совершенной брони, после оплаты. На вход передается идентификатор брони.
+__confirmBooking__ booking confirmation after payment on 12Go side. Input is the Booking ID.
 
-Ответ JSON-строка вида:
-
-```javascript
-{
-    // флаг 0 или 1, в зависимости от того удалось ли зарезервивать места
-    "successful" : 1,
-    // Сообщение об ошибке если бронь не создана
-    "message" : message,
-}
-```
-Пример вызова: operator.site/api?method=confirmBookig&code=1234&signature=sha1&booking_id=242234
-
-__cancelBooking__  отмена ранее совершенной брони, после оплаты. На вход передается идентификатор брони.
-
-Ответ JSON-строка вида:
+Response is JSON:
 
 ```javascript
 {
-    // флаг 0 или 1, в зависимости от того удалось ли отменить бронь
+    // flag 0 or 1, depending on the call result on operator side
     "successful" : 1,
-    // Сообщение об ошибке если бронь отменить не удалось
+    // Error message, if any
     "message" : message,
 }
 ```
-Пример вызова: operator.site/api?method=cancelBooking&code=1234&signature=sha1&booking_id=242234
+Example: operator.site/api?method=confirmBookig&code=1234&signature=sha1&booking_id=242234
 
-__getBookingDetail__ возвращает детали бронирования. На вход передается идентификатор брони.
+__cancelBooking__  booking cancellation. input is the booking ID.
 
-Ответ JSON-строка вида:
+Response is JSON:
+
+```javascript
+{
+    // flag 0 or 1, depending on the call result on operator side
+    "successful" : 1,
+    // Error message, if any
+    "message" : message,
+}
+```
+Example: operator.site/api?method=cancelBooking&code=1234&signature=sha1&booking_id=242234
+
+__getBookingDetail__ retunrs booking details. Input is the Booking ID.
+
+Response is JSON:
 
 ```javascript
 {
@@ -211,5 +217,5 @@ __getBookingDetail__ возвращает детали бронирования.
     ]
 }
 ```
-Пример: 
+Example: 
 operator.site/api?method=getBookingDetail&code=1234&signature=sha1&booking_id=242234

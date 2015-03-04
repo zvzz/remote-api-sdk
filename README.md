@@ -4,8 +4,8 @@ There are 2 simple PHP files for easy integration of your company into [12go.asi
  * api_contoller.php - API endpoint.
  * api_model.php - data access function you will need to extend.
 
-####Integrtaion
-To integrate your inventory system into [12go.asia](https://12go.asia) you will have to extend API calls on your side, generate API key and send it to 12Go. You may simply place our 2 files to where you planned to have an API endpoint. **api_controller.php** file checks HTTP(s) requests, and calls certain data access functions. These functions are in the **api_model.php** file and all you havce to do is to add specific code to access your database. 
+####Integration
+To integrate your inventory system into [12go.asia](https://12go.asia) you will have to extend API calls on your side, generate API key and send it to 12Go. You may simply place our 2 files to where you planned to have an API endpoint. **api_controller.php** file checks HTTP(s) requests, and calls certain data access functions. These functions are in the **api_model.php** file and all you have to do is to add specific code to access your database. 
 
 For security, we have no access to this code.
 
@@ -15,7 +15,7 @@ Each call must contain 3 mandatory parameters
 
   * method - API method to call
   * signature -  SHA1 hash code to sign the request
-  * code - unique nueric sequence for each request
+  * code - unique numeric sequence for each request
 
 If you plan on using a different security approach, just let us know.
 
@@ -31,7 +31,7 @@ If you plan on using a different security approach, just let us know.
 **getSchedule** method will allow 12Go to check availability for a given date and time.
 Passenger then will be able to choose the departure, reserve seats for the duration of booking process (**reserveSeats**), and get **Booking ID**.
 For that given **Booking ID** it will be possible to **confirmBooking** or **cancelBooking**. 
-Cancelation policy is then applied by the operator.
+Cancellation policy is then applied by the operator.
 
 ####API Methods
 
@@ -192,14 +192,14 @@ Response is JSON:
 ```
 Example: operator.site/api?method=cancelBooking&code=1234&signature=sha1&booking_id=242234
 
-__getBookingDetail__ retunrs booking details. Input is the Booking ID.
+__getBookingDetail__ returns booking details. Input is the Booking ID.
 
 Response is JSON:
 
 ```javascript
 {
  	"id"      : booking_id,
- 	"satus"   : booking_status,
+ 	"status"  : booking_status,
 	"from_id" : from_station_id,
   	"to_id"   : to_station_id,
   	"class"   : coach_type,
